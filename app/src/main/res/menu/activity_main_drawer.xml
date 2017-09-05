@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/set_drone_1"
+            android:icon="@drawable/drone"
+            android:title="无人机 1"/>
+        <item
+            android:id="@+id/set_drone_2"
+            android:icon="@drawable/rotor"
+            android:title="无人机 2"/>
+        <item
+            android:id="@+id/set_drone_3"
+            android:icon="@drawable/drone"
+            android:title="无人机 3"/>
+        <item
+            android:id="@+id/set_drone_4"
+            android:icon="@drawable/rotor"
+            android:title="无人机 4"/>
+    </group>
+
+    <item android:title="Tools">
+        <menu>
+            <item
+                android:id="@+id/set_wifi_router"
+                android:icon="@drawable/wifi_router"
+                android:title="Wifi 路由器"/>
+            <item
+                android:id="@+id/set_wifi_ap"
+                android:icon="@drawable/wifi_ap"
+                android:title="Wifi 热点"/>
+            <item
+                android:id="@+id/set_gprs"
+                android:icon="@drawable/gprs"
+                android:title="GPRS"/>
+        </menu>
+    </item>
+
+</menu>
