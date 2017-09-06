@@ -4,19 +4,19 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/set_drone_1"
-            android:icon="@drawable/drone"
+            android:icon="@drawable/drone_1"
             android:title="无人机 1"/>
         <item
             android:id="@+id/set_drone_2"
-            android:icon="@drawable/rotor"
+            android:icon="@drawable/drone_3"
             android:title="无人机 2"/>
         <item
             android:id="@+id/set_drone_3"
-            android:icon="@drawable/drone"
+            android:icon="@drawable/drone_2"
             android:title="无人机 3"/>
         <item
             android:id="@+id/set_drone_4"
-            android:icon="@drawable/rotor"
+            android:icon="@drawable/drone_4"
             android:title="无人机 4"/>
     </group>
 

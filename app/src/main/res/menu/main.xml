@@ -7,6 +7,11 @@
         android:title="@string/action_map_sw"
         app:showAsAction="never"/>
     <item
+        android:id="@+id/action_locate_method"
+        android:orderInCategory="100"
+        android:title="@string/action_locate_method"
+        app:showAsAction="never"/>
+    <item
         android:id="@+id/action_formation"
         android:orderInCategory="100"
         android:title="@string/action_formation"
