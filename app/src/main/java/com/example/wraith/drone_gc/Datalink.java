@@ -50,6 +50,9 @@ public class Datalink {
 	private int Lng_Tgt, Lat_Tgt;
 	private int Alt_Tgt;
 
+	// 校准，手机的高德地图包会有点不准，这边要弄个校准
+	public double Cali_Lat = (24.934529012068896f - 24.93611960f) * 2;
+	public double Cali_Lon = 118.64446341994250f - 118.6404704f;
 
 	public Datalink(int id) {
 

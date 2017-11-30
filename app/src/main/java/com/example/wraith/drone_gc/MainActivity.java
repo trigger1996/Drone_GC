@@ -30,6 +30,7 @@ import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
 import com.amap.api.maps.AMap;
 import com.amap.api.maps.CameraUpdateFactory;
+import com.amap.api.maps.CoordinateConverter;
 import com.amap.api.maps.LocationSource;
 import com.amap.api.maps.MapView;
 import com.amap.api.maps.model.BitmapDescriptorFactory;
@@ -57,6 +58,8 @@ public class MainActivity extends AppCompatActivity
 	private int       ID_to_Send    = 0;		// 选择发送的飞机ID号
 	private boolean   Flag_Formation = false;	// 编队飞行标识位
 
+	private static int time_to_clear_map = 0;
+
 	///  地图控件相关
 	MapView mMapView = null;
 	AMap aMap = null;
@@ -72,6 +75,9 @@ public class MainActivity extends AppCompatActivity
 	double latitude;
 	double longitude;
 	MarkerOptions DroneLoc_1 = null, DroneLoc_2 = null, DroneLoc_3 = null, DroneLoc_4 = null;	// 飞机在地图上的标记
+
+	CoordinateConverter DroneCov_1, DroneCov_2, DroneCov_3, DroneCov_4;
+	coor_transform TgtCov;
 
 	int 	cur_Task = 1;			// 当前任务, 这个还不知道怎么用
 	double	target_Alt = 2.5f;		// 目标高度，单位：m，这个也不会用
@@ -132,7 +138,7 @@ public class MainActivity extends AppCompatActivity
 						case 1 : {
 							Link_1.Snd_Update_Link(cur_Task,
 									hour, minute, second, msecond,
-									longitude, latitude, target_Alt);
+									TgtCov.g_wgs84.longitude, TgtCov.g_wgs84.latitude, target_Alt);
 							Link_1.Snd_Preload_PlainText();
 							udpServer.Tx = Link_1.Send;
 						} break;
@@ -140,15 +146,16 @@ public class MainActivity extends AppCompatActivity
 						case 2 : {
 							Link_2.Snd_Update_Link(cur_Task,
 									hour, minute, second, msecond,
-									longitude, latitude, target_Alt);
+									TgtCov.g_wgs84.longitude, TgtCov.g_wgs84.latitude, target_Alt);
 							Link_2.Snd_Preload_PlainText();
 							udpServer.Tx = Link_2.Send;
+
 						} break;
 
 						case 3 : {
 							Link_3.Snd_Update_Link(cur_Task,
 									hour, minute, second, msecond,
-									longitude, latitude, target_Alt);
+									TgtCov.g_wgs84.longitude, TgtCov.g_wgs84.latitude, target_Alt);
 							Link_3.Snd_Preload_PlainText();
 							udpServer.Tx = Link_3.Send;
 
@@ -157,7 +164,7 @@ public class MainActivity extends AppCompatActivity
 						case 4 : {
 							Link_4.Snd_Update_Link(cur_Task,
 									hour, minute, second, msecond,
-									longitude, latitude, target_Alt);
+									TgtCov.g_wgs84.longitude, TgtCov.g_wgs84.latitude, target_Alt);
 							Link_4.Snd_Preload_PlainText();
 							udpServer.Tx = Link_4.Send;
 						} break;
@@ -175,28 +182,28 @@ public class MainActivity extends AppCompatActivity
 					// 1号机
 					Link_1.Snd_Update_Link(cur_Task,
 							hour, minute, second, msecond,
-							longitude, latitude, target_Alt);
+							TgtCov.g_wgs84.longitude, TgtCov.g_wgs84.latitude, target_Alt);
 					Link_1.Snd_Preload_PlainText();
 					udpServer.Tx = Link_1.Send;
 
 					// 2号机
 					Link_2.Snd_Update_Link(cur_Task,
 							hour, minute, second, msecond,
-							longitude + spread, latitude, target_Alt);
+							TgtCov.g_wgs84.longitude + spread, TgtCov.g_wgs84.latitude, target_Alt);
 					Link_2.Snd_Preload_PlainText();
 					udpServer.Tx = Link_2.Send;
 
 					// 3号机
 					Link_3.Snd_Update_Link(cur_Task,
 							hour, minute, second, msecond,
-							longitude + spread * 2, latitude, target_Alt);
+							TgtCov.g_wgs84.longitude + spread * 2, TgtCov.g_wgs84.latitude, target_Alt);
 					Link_3.Snd_Preload_PlainText();
 					udpServer.Tx = Link_3.Send;
 
 					// 4号机
 					Link_4.Snd_Update_Link(cur_Task,
 							hour, minute, second, msecond,
-							longitude + spread * 3, latitude, target_Alt);
+							TgtCov.g_wgs84.longitude + spread * 3, TgtCov.g_wgs84.latitude, target_Alt);
 					Link_4.Snd_Preload_PlainText();
 					udpServer.Tx = Link_4.Send;
 				}
@@ -212,6 +219,23 @@ public class MainActivity extends AppCompatActivity
 
 		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
 		navigationView.setNavigationItemSelectedListener(this);
+
+
+		// 初始化坐标转换
+		DroneCov_1 = new CoordinateConverter(context);
+		DroneCov_2 = new CoordinateConverter(context);
+		DroneCov_3 = new CoordinateConverter(context);
+		DroneCov_4 = new CoordinateConverter(context);
+
+		DroneCov_1.from(CoordinateConverter.CoordType.GPS);
+		DroneCov_2.from(CoordinateConverter.CoordType.GPS);
+		DroneCov_3.from(CoordinateConverter.CoordType.GPS);
+		DroneCov_4.from(CoordinateConverter.CoordType.GPS);
+
+		TgtCov = new coor_transform();
+
+		// 设置一个初始ID
+		ID_to_Send = 2;
 	}
 	@Override
 	protected void onDestroy() {
@@ -361,13 +385,17 @@ public class MainActivity extends AppCompatActivity
 
 				}
 
-				// 显示4架飞机
+
+				// 显示4架飞机和当前位置
 				LatLng grid_temp = null;
 
 				if (Link_1.Lat != 0.0f && Link_1.Lng != 0.0f) {
 
 					// 1号机
 					grid_temp = new LatLng(Link_1.Lat, Link_1.Lng);
+					DroneCov_1.coord(grid_temp);
+					grid_temp = DroneCov_1.convert();
+
 					DroneLoc_1.position(grid_temp);
 					aMap.addMarker(DroneLoc_1);
 				}
@@ -375,13 +403,20 @@ public class MainActivity extends AppCompatActivity
 
 					// 2号机
 					grid_temp = new LatLng(Link_2.Lat, Link_2.Lng);
+					DroneCov_2.coord(grid_temp);
+					grid_temp = DroneCov_2.convert();
+
 					DroneLoc_2.position(grid_temp);
 					aMap.addMarker(DroneLoc_2);
+
 				}
 				if (Link_3.Lat != 0.0f && Link_3.Lng != 0.0f) {
 
 					// 3号机
 					grid_temp = new LatLng(Link_3.Lat, Link_3.Lng);
+					DroneCov_3.coord(grid_temp);
+					grid_temp = DroneCov_3.convert();
+
 					DroneLoc_3.position(grid_temp);
 					aMap.addMarker(DroneLoc_3);
 				}
@@ -389,6 +424,9 @@ public class MainActivity extends AppCompatActivity
 
 					// 4号机
 					grid_temp = new LatLng(Link_4.Lat, Link_4.Lng);
+					DroneCov_4.coord(grid_temp);
+					grid_temp = DroneCov_4.convert();
+
 					DroneLoc_4.position(grid_temp);
 					aMap.addMarker(DroneLoc_4);
 				}
@@ -492,6 +530,7 @@ public class MainActivity extends AppCompatActivity
 				}
 			}
 
+
 			// 本来还要做个如果使用高精度定位要开流量，这边算了，因为最原始的包含这个功能
 
 		}
@@ -544,11 +583,13 @@ public class MainActivity extends AppCompatActivity
 		latitude = latLng.latitude;
 		longitude = latLng.longitude;
 		MarkerOptions otMarkerOptions = new MarkerOptions();
-		otMarkerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.target));
+		otMarkerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.rotor));
 		otMarkerOptions.position(latLng);
 		aMap.addMarker(otMarkerOptions);
 		//aMap.moveCamera(CameraUpdateFactory.changeLatng(latLng));    // 将选中的点移动到当前位置
-		Toast.makeText(MainActivity.this,"Lat: " + latitude + " " + "Lng: " + longitude, Toast.LENGTH_SHORT).show();
+
+		TgtCov.gcj02towgs84(longitude, latitude);
+		Toast.makeText(MainActivity.this,"Lat: " + TgtCov.g_wgs84.latitude + " " + "Lng: " + TgtCov.g_wgs84.longitude, Toast.LENGTH_SHORT).show();
 
 	}
 

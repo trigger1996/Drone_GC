@@ -2,6 +2,7 @@ package com.example.wraith.drone_gc;
 
 import android.content.Intent;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -27,7 +28,7 @@ class UDPServer implements Runnable {
 	public void run() {
 		try{
 			socket_should_exit = false;
-			DatagramSocket ds = new DatagramSocket(50000);
+			DatagramSocket ds = new DatagramSocket(40000);
 			byte[] buf = new byte[1024];
 			DatagramPacket dp = new DatagramPacket(buf,1024);
 
