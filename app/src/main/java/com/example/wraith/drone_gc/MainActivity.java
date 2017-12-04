@@ -76,8 +76,12 @@ public class MainActivity extends AppCompatActivity
 	double longitude;
 	MarkerOptions DroneLoc_1 = null, DroneLoc_2 = null, DroneLoc_3 = null, DroneLoc_4 = null;	// 飞机在地图上的标记
 
+	// 飞机坐标转换
 	CoordinateConverter DroneCov_1, DroneCov_2, DroneCov_3, DroneCov_4;
-	coor_transform TgtCov;
+	// 自身坐标转换
+	PositionUtil TgtCov;
+	Gps wgs;
+
 
 	int 	cur_Task = 1;			// 当前任务, 这个还不知道怎么用
 	double	target_Alt = 2.5f;		// 目标高度，单位：m，这个也不会用
@@ -138,7 +142,7 @@ public class MainActivity extends AppCompatActivity
 						case 1 : {
 							Link_1.Snd_Update_Link(cur_Task,
 									hour, minute, second, msecond,
-									TgtCov.g_wgs84.longitude, TgtCov.g_wgs84.latitude, target_Alt);
+									wgs.getWgLon(), wgs.getWgLat(), target_Alt);
 							Link_1.Snd_Preload_PlainText();
 							udpServer.Tx = Link_1.Send;
 						} break;
@@ -146,7 +150,7 @@ public class MainActivity extends AppCompatActivity
 						case 2 : {
 							Link_2.Snd_Update_Link(cur_Task,
 									hour, minute, second, msecond,
-									TgtCov.g_wgs84.longitude, TgtCov.g_wgs84.latitude, target_Alt);
+									wgs.getWgLon(), wgs.getWgLat(), target_Alt);
 							Link_2.Snd_Preload_PlainText();
 							udpServer.Tx = Link_2.Send;
 
@@ -155,7 +159,7 @@ public class MainActivity extends AppCompatActivity
 						case 3 : {
 							Link_3.Snd_Update_Link(cur_Task,
 									hour, minute, second, msecond,
-									TgtCov.g_wgs84.longitude, TgtCov.g_wgs84.latitude, target_Alt);
+									wgs.getWgLon(), wgs.getWgLat(), target_Alt);
 							Link_3.Snd_Preload_PlainText();
 							udpServer.Tx = Link_3.Send;
 
@@ -164,7 +168,7 @@ public class MainActivity extends AppCompatActivity
 						case 4 : {
 							Link_4.Snd_Update_Link(cur_Task,
 									hour, minute, second, msecond,
-									TgtCov.g_wgs84.longitude, TgtCov.g_wgs84.latitude, target_Alt);
+									wgs.getWgLon(), wgs.getWgLat(), target_Alt);
 							Link_4.Snd_Preload_PlainText();
 							udpServer.Tx = Link_4.Send;
 						} break;
@@ -182,28 +186,28 @@ public class MainActivity extends AppCompatActivity
 					// 1号机
 					Link_1.Snd_Update_Link(cur_Task,
 							hour, minute, second, msecond,
-							TgtCov.g_wgs84.longitude, TgtCov.g_wgs84.latitude, target_Alt);
+							wgs.getWgLon(), wgs.getWgLat(), target_Alt);
 					Link_1.Snd_Preload_PlainText();
 					udpServer.Tx = Link_1.Send;
 
 					// 2号机
 					Link_2.Snd_Update_Link(cur_Task,
 							hour, minute, second, msecond,
-							TgtCov.g_wgs84.longitude + spread, TgtCov.g_wgs84.latitude, target_Alt);
+							wgs.getWgLon() + spread, wgs.getWgLat(), target_Alt);
 					Link_2.Snd_Preload_PlainText();
 					udpServer.Tx = Link_2.Send;
 
 					// 3号机
 					Link_3.Snd_Update_Link(cur_Task,
 							hour, minute, second, msecond,
-							TgtCov.g_wgs84.longitude + spread * 2, TgtCov.g_wgs84.latitude, target_Alt);
+							wgs.getWgLon() + spread * 2, wgs.getWgLat(), target_Alt);
 					Link_3.Snd_Preload_PlainText();
 					udpServer.Tx = Link_3.Send;
 
 					// 4号机
 					Link_4.Snd_Update_Link(cur_Task,
 							hour, minute, second, msecond,
-							TgtCov.g_wgs84.longitude + spread * 3, TgtCov.g_wgs84.latitude, target_Alt);
+							wgs.getWgLon() + spread * 3, wgs.getWgLat(), target_Alt);
 					Link_4.Snd_Preload_PlainText();
 					udpServer.Tx = Link_4.Send;
 				}
@@ -232,7 +236,8 @@ public class MainActivity extends AppCompatActivity
 		DroneCov_3.from(CoordinateConverter.CoordType.GPS);
 		DroneCov_4.from(CoordinateConverter.CoordType.GPS);
 
-		TgtCov = new coor_transform();
+		TgtCov = new PositionUtil();
+		wgs = new Gps(0.0f, 0.0f);
 
 		// 设置一个初始ID
 		ID_to_Send = 2;
@@ -588,8 +593,9 @@ public class MainActivity extends AppCompatActivity
 		aMap.addMarker(otMarkerOptions);
 		//aMap.moveCamera(CameraUpdateFactory.changeLatng(latLng));    // 将选中的点移动到当前位置
 
-		TgtCov.gcj02towgs84(longitude, latitude);
-		Toast.makeText(MainActivity.this,"Lat: " + TgtCov.g_wgs84.latitude + " " + "Lng: " + TgtCov.g_wgs84.longitude, Toast.LENGTH_SHORT).show();
+
+		wgs = TgtCov.gcj_To_Gps84(latitude, longitude);
+		Toast.makeText(MainActivity.this,"Lat: " + wgs.getWgLat() + " " + "Lng: " + wgs.getWgLon(), Toast.LENGTH_SHORT).show();
 
 	}
 
